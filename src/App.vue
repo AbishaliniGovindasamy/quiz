@@ -2,14 +2,24 @@
 import StartScreen from './components/StartScreen.vue';
 import Loader from './components/Loader.vue';
 import Quiz from './components/Quiz.vue';
+import Result from './components/Result.vue';
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { ref } from 'vue';
+
 
 const questions = ref([]);
 const status = ref("start");
 const isLoading = ref(false);
+const errorMessage = ref('');
 
 const userAnswers = ref([]);
+const restartQuiz = ()=>{
+
+  questions.value='';
+  status.value='start';
+  userAnswers.value=[];
+  errorMessage.value='';
+}
 
 const storeAnswer = (answer) =>{
   userAnswers.value.push(answer);
@@ -29,7 +39,6 @@ const startQuiz = async (topic) => {
   isLoading.value = true;
   questions.value = [];
 
-  try {
     const genAi = new GoogleGenerativeAI("AIzaSyBRNYiVsnjnaTgAadpDPvZWCdE3xokSQXE");
 
     const schema = {
@@ -67,6 +76,7 @@ const startQuiz = async (topic) => {
         responseSchema: schema,
       },
     });
+  try {
 
     const result = await model.generateContent(
       `Create 5 multiple-choice quiz questions about ${topic}. Difficulty: Easy to Medium.`
@@ -82,7 +92,8 @@ const startQuiz = async (topic) => {
     questions.value = [
       { question: error.message || "Unexpected error occurred." }
     ];
-    status.value = 'ready';
+    errorMessage.value = error;
+    status.value = 'start';
   } finally {
     isLoading.value = false;
   }
@@ -98,8 +109,9 @@ const startQuiz = async (topic) => {
       </div>
     </header>
 
-    <StartScreen v-if="status === 'start'" @start-quiz="startQuiz" :isLoading="isLoading" />
+    <StartScreen v-if="status === 'start'" :errorMessage="errorMessage" @start-quiz="startQuiz" :isLoading="isLoading" />
     <Loader v-if="status === 'loading'" />
-    <Quiz  @store-answer="storeAnswer" v-if="status === 'ready'" :questions="questions" />
-  </div>
+    <Quiz v-if="status === 'ready'" @end-quiz="status='finished'"  @store-answer="storeAnswer"  :questions="questions" />
+    <Result v-if="status == 'finished'" @restart-quiz="restartQuiz" :userAnswers="userAnswers" />
+ </div>
 </template>

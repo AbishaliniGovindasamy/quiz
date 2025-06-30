@@ -25,6 +25,7 @@ const submitAnswer = () => {
   selectedOption.value = null; // Optional: reset selection for next question
   
   if(currentQuestion.value === props.questions.length -1){
+    currentQuestion.value=0;
     emit('end-quiz');
 
   } else{
