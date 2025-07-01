@@ -8,7 +8,7 @@ const topic = ref('');
 
 <template>
   <section class="start-screen container">
-    <h2>Choose a topic to start testing your knowledge</h2>
+    <h2>Choose a topic in ComputerScience  to start testing your knowledge</h2>
     <input v-model="topic" type="text" placeholder="Enter your topic..." />
     <button @click="emit('start-quiz', topic)" :disabled="!topic">
       Start Quiz
